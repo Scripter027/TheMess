@@ -25,7 +25,10 @@ const translations = {
         ch5: "Глава 5",
         soon: "скоро",
         loading: "ЗАГРУЗКА...",
-        exit: "Выход"
+        exit: "Выход",
+        credits: "Титры",
+        news: "Новости",
+        credits_soon: "Титров пока нет ;)"
     },
     en: {
         prompt: "CLICK ON SCREEN TO START",
@@ -48,7 +51,10 @@ const translations = {
         ch5: "Chapter 5",
         soon: "soon",
         loading: "LOADING...",
-        exit: "Exit"
+        exit: "Exit",
+        credits: "Credits",
+        news: "News",
+        credits_soon: "No credits yet ;)"
     }
 };
 
@@ -60,6 +66,7 @@ const videoContainer = document.getElementById('videoContainer');
 const videoElement = document.getElementById('introVideo');
 const mainMenu = document.getElementById('mainMenu');
 const startPrompt = document.getElementById('startPrompt');
+const creditsOverlay = document.getElementById('creditsOverlay');
 
 const menuContent = document.getElementById('menuContent');
 const mainButtonsList = document.getElementById('mainButtonsList');
@@ -90,6 +97,7 @@ function playNextVideo() {
         videoElement.load();
         videoElement.muted = false;
         const onCanPlay = () => {
+            if (currentVideoIndex === 0) return; 
             let playPromise = videoElement.play();
             if (playPromise !== undefined) {
                 playPromise.catch(() => {
@@ -128,7 +136,11 @@ function setupSkipListeners() {
 }
 
 function transitionToMenu() {
+    currentVideoIndex = 999;
     videoElement.pause();
+    videoElement.src = '';
+    videoElement.removeAttribute('src');
+    videoElement.load();
     videoContainer.style.transition = 'opacity 1.0s ease';
     videoContainer.style.opacity = '0';
     setTimeout(() => {
@@ -199,6 +211,16 @@ document.addEventListener('click', function(e) {
     if (target.id === 'btnStart') {
         settingsContext = 'menu';
         openPanel(target, panelStart);
+        return;
+    }
+    
+    if (target.id === 'btnCredits') {
+        creditsOverlay.classList.remove('hidden');
+        setTimeout(() => creditsOverlay.classList.add('visible'), 50);
+        setTimeout(() => {
+            creditsOverlay.classList.remove('visible');
+            setTimeout(() => creditsOverlay.classList.add('hidden'), 500);
+        }, 3000);
         return;
     }
     
