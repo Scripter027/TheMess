@@ -1,83 +1,92 @@
-window.currentExplorerTab = 'apps';
-window.switchExplorerTab = function(tabId) {
-    window.currentExplorerTab = tabId;
-    window.renderExplorerList();
-};
+(function() {
+    const windowExplorer = document.getElementById('windowExplorer');
+    const btnCloseExplorer = document.getElementById('btnCloseExplorer');
+    const explorerContainer = document.getElementById('explorerContainer');
 
-window.renderExplorerList = function() {
-    const container = document.getElementById('explorerListContainer');
-    if (!container) return;
-    container.innerHTML = '';
-    const icons = document.querySelectorAll('.icon');
-    const isRu = (currentLang === 'ru');
-    const installedApps = JSON.parse(localStorage.getItem('kpr_installed_apps')) || {};
-    
-    const appTypes = {
-        apps: ['icon-win-msg', 'icon-win-search', 'icon-win-bsod'],
-        games: ['icon-win-dino', 'icon-win-blocks', 'icon-win-tetris', 'icon-win-sudoku', 'icon-win-memory', 'icon-win-tower', 'icon-win-words', 'icon-win-hangman'],
-        other: ['icon-win-zip', 'icon-win-zip2', 'icon-win-zip3', 'icon-win-dontopen']
+    window.initExplorerApp = function() {
+        windowExplorer.classList.remove('hidden');
+        window.renderExplorerContents();
     };
-    
-    const defaultInstalled = ['icon-win-msg', 'icon-win-search', 'icon-win-bsod', 'icon-win-dino', 'icon-win-blocks'];
-    const listHTML = [];
-    
-    icons.forEach(icon => {
-        if (icon.id === 'icon-win-explorer' || icon.id === 'icon-win-trash' || icon.id === 'icon-win-store' || icon.id === 'icon-win-settings') return;
+
+    btnCloseExplorer.addEventListener('click', () => {
+        windowExplorer.classList.add('hidden');
+    });
+
+    window.renderExplorerContents = function() {
+        explorerContainer.innerHTML = '';
+        const lang = document.documentElement.lang || 'ru';
         
-        if (typeof trashedApps !== 'undefined' && trashedApps[icon.id]) return;
-        
-        if (appTypes[window.currentExplorerTab] && appTypes[window.currentExplorerTab].includes(icon.id)) {
-            if (window.currentExplorerTab === 'games' && !defaultInstalled.includes(icon.id) && !installedApps[icon.id]) {
-                return;
+        const activeApps = window.AppConfig.state.installed.filter(appId => {
+            return !window.AppConfig.state.trashContents.includes(appId);
+        });
+
+        if (activeApps.length === 0) {
+            const emptyEl = document.createElement('div');
+            emptyEl.style.color = '#00ff66';
+            emptyEl.style.opacity = '0.5';
+            emptyEl.style.padding = '10px';
+            emptyEl.textContent = lang === 'ru' ? 'Папка пуста' : 'Folder is empty';
+            explorerContainer.appendChild(emptyEl);
+            return;
+        }
+
+        activeApps.forEach(appId => {
+            const appData = window.AppConfig.allApps[appId];
+            if (!appData) return;
+
+            const itemEl = document.createElement('div');
+            itemEl.style.display = 'flex';
+            itemEl.style.justifyContent = 'space-between';
+            itemEl.style.alignItems = 'center';
+            itemEl.style.padding = '10px';
+            itemEl.style.borderBottom = '1px solid rgba(0, 255, 102, 0.2)';
+
+            const infoEl = document.createElement('div');
+            infoEl.style.display = 'flex';
+            infoEl.style.gap = '15px';
+            infoEl.style.color = '#00ff66';
+            infoEl.style.cursor = 'pointer';
+            infoEl.style.flex = '1';
+
+            const iconEl = document.createElement('span');
+            iconEl.textContent = appData.icon;
+
+            const nameEl = document.createElement('span');
+            nameEl.textContent = lang === 'ru' ? appData.nameRu : appData.nameEn;
+
+            infoEl.appendChild(iconEl);
+            infoEl.appendChild(nameEl);
+
+            infoEl.addEventListener('click', () => {
+                if (window.openApplicationWindow) {
+                    window.openApplicationWindow(appId);
+                }
+            });
+
+            itemEl.appendChild(infoEl);
+
+            if (appData.type !== 'system') {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.style.background = 'transparent';
+                deleteBtn.style.border = '1px solid #ff3333';
+                deleteBtn.style.color = '#ff3333';
+                deleteBtn.style.padding = '5px 10px';
+                deleteBtn.style.cursor = 'pointer';
+                deleteBtn.style.fontFamily = 'Russo One, sans-serif';
+                deleteBtn.style.fontSize = '0.8rem';
+                deleteBtn.textContent = lang === 'ru' ? 'Удалить' : 'Delete';
+
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (window.moveAppToTrash) {
+                        window.moveAppToTrash(appId);
+                    }
+                });
+
+                itemEl.appendChild(deleteBtn);
             }
 
-            const titleRu = icon.dataset.titleRu || (icon.querySelector('.icon-name') ? icon.querySelector('.icon-name').innerText : '');
-            const titleEn = icon.dataset.titleEn || (icon.querySelector('.icon-name') ? icon.querySelector('.icon-name').innerText : '');
-            const displayTitle = isRu ? titleRu : titleEn;
-            const pic = icon.querySelector('.icon-pic') ? icon.querySelector('.icon-pic').innerText : '📦';
-            const targetId = icon.dataset.id || '';
-            
-            listHTML.push(`
-                <div class="store-item">
-                    <div class="store-item-left" style="display:flex; align-items:center; gap:8px;">
-                        <span>${pic}</span>
-                        <span>${displayTitle}</span>
-                    </div>
-                    <button class="explorer-btn" onclick="window.openOSWindow('${targetId}', '${displayTitle}', '${pic}')">${isRu ? 'Открыть' : 'Open'}</button>
-                </div>
-            `);
-        }
-    });
-    
-    const contentWrap = document.createElement('div');
-    contentWrap.style.cssText = "height:calc(100% - 40px); overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:6px;";
-    contentWrap.innerHTML = listHTML.length > 0 ? listHTML.join('') : `<div style="text-align:center; padding-top:20px; color:rgba(85,255,85,0.4);">${isRu ? 'Пусто' : 'Empty'}</div>`;
-    
-    const tabsWrap = document.createElement('div');
-    tabsWrap.className = "store-tabs-container";
-    tabsWrap.style.cssText = "height:40px; border-top:2px solid #55ff55; display:flex; background:rgba(0,0,0,0.85); width:100%;";
-    
-    const tabs = [{id:'apps', ru:'APPS', en:'APPS'}, {id:'games', ru:'GAMES', en:'GAMES'}, {id:'other', ru:'OTHER', en:'OTHER'}];
-    tabs.forEach((t, index) => {
-        const btn = document.createElement('button');
-        btn.id = `explorer-tab-${t.id}`;
-        btn.style.cssText = "flex:1; background:transparent; border:none; color:#55ff55; font-weight:bold; font-size:11px; cursor:pointer;";
-        if (index > 0) btn.style.borderLeft = "2px solid #55ff55";
-        btn.innerText = isRu ? t.ru : t.en;
-        if (window.currentExplorerTab === t.id) {
-            btn.style.background = "#55ff55";
-            btn.style.color = "#000000";
-        }
-        btn.onclick = () => window.switchExplorerTab(t.id);
-        tabsWrap.appendChild(btn);
-    });
-    
-    const mainWrap = document.createElement('div');
-    mainWrap.style.cssText = "display:flex; flex-direction:column; height:100%; width:100%; justify-content:space-between;";
-    mainWrap.appendChild(contentWrap);
-    mainWrap.appendChild(tabsWrap);
-    
-    container.innerHTML = '';
-    container.style.padding = '0';
-    container.appendChild(mainWrap);
-};
+            explorerContainer.appendChild(itemEl);
+        });
+    };
+})();
