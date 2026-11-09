@@ -1,88 +1,93 @@
-window.initKeeperStore = function() {
-    window.renderStoreList();
-};
+(function() {
+    const windowStore = document.getElementById('windowStore');
+    const btnCloseStore = document.getElementById('btnCloseStore');
+    const storeContainer = document.getElementById('storeContainer');
 
-window.renderStoreList = function() {
-    const win = document.getElementById('win-store');
-    if (!win) return;
-    const body = win.querySelector('.window-body');
-    if (!body) return;
+    window.initStoreApp = function() {
+        windowStore.classList.remove('hidden');
+        renderStoreContents();
+    };
 
-    body.innerHTML = '';
-    const isRu = (typeof currentLang !== 'undefined' ? currentLang === 'ru' : true);
-    const installedApps = JSON.parse(localStorage.getItem('kpr_installed_apps')) || {};
-    const localTrash = typeof trashedApps !== 'undefined' ? trashedApps : {};
-
-    const storeItems = [
-        { id: 'icon-win-tetris', target: 'win-tetris', ru: 'ТЕТРИС', en: 'TETRIS', pic: '🕹️' },
-        { id: 'icon-win-sudoku', target: 'win-sudoku', ru: 'СУДОКУ', en: 'SUDOKU', pic: '🔢' },
-        { id: 'icon-win-memory', target: 'win-memory', ru: 'ПАМЯТЬ', en: 'MEMORY', pic: '🧠' },
-        { id: 'icon-win-tower', target: 'win-tower', ru: 'БАШНЯ', en: 'TOWER', pic: '🏢' },
-        { id: 'icon-win-words', target: 'win-words', ru: 'СЛОВА', en: 'WORDS', pic: '🔤' },
-        { id: 'icon-win-hangman', target: 'win-hangman', ru: 'ВИСЕЛИЦА', en: 'HANGMAN', pic: '🪵' }
-    ];
-
-    let hasAvailable = false;
-    storeItems.forEach(item => {
-        if (installedApps[item.id] || localTrash[item.id]) return;
-        hasAvailable = true;
-
-        const row = document.createElement('div');
-        row.className = 'store-item';
-        
-        const title = isRu ? item.ru : item.en;
-        row.innerHTML = `
-            <span>${item.pic} ${title}</span>
-            <button class="explorer-btn" data-app-id="${item.id}">${isRu ? 'СКАЧАТЬ' : 'DOWNLOAD'}</button>
-        `;
-
-        row.querySelector('.explorer-btn').addEventListener('click', function() {
-            window.installApp(this.getAttribute('data-app-id'));
-        });
-
-        body.appendChild(row);
+    btnCloseStore.addEventListener('click', () => {
+        windowStore.classList.add('hidden');
     });
 
-    if (!hasAvailable) {
-        body.innerHTML = `<div style="text-align:center; padding-top:20px; opacity:0.6;">${isRu ? 'ВСЕ ПРИЛОЖЕНИЯ УСТАНОВЛЕНЫ' : 'ALL APPS INSTALLED'}</div>`;
-    }
-};
+    function renderStoreContents() {
+        storeContainer.innerHTML = '';
+        const lang = document.documentElement.lang || 'ru';
 
-window.installApp = function(id) {
-    let installedApps = JSON.parse(localStorage.getItem('kpr_installed_apps')) || {};
-    installedApps[id] = true;
-    localStorage.setItem('kpr_installed_apps', JSON.stringify(installedApps));
-    
-    if (window.generateDesktopIcons) window.generateDesktopIcons();
-    if (window.renderStoreList) window.renderStoreList();
-    if (window.renderExplorerList) window.renderExplorerList();
-};
+        Object.keys(window.AppConfig.allApps).forEach(appId => {
+            const appData = window.AppConfig.allApps[appId];
+            if (appData.type === 'system') return;
 
-window.advanceNestedFolder = function(step) {
-    const body = document.getElementById('nestedFolderBody');
-    if (!body) return;
-    const isRu = (typeof currentLang !== 'undefined' ? currentLang === 'ru' : true);
-    
-    if (step === 0) {
-        body.innerHTML = `<div style="padding-left: 8px; border-left: 2px dashed #55ff55; margin-top: 6px;"><span class="nested-folder-link" onclick="window.advanceNestedFolder(1)">📁 АРХИВ_СТАРЫЙ</span></div>`;
-    } else if (step === 1) {
-        body.innerHTML = `<div style="padding-left: 8px; border-left: 2px dashed #55ff55; margin-top: 6px;"><span class="nested-folder-link" onclick="window.openOSWindow('win-zip', 'SECRET.ZIP', '📦')">📄 SECRET.ZIP</span></div>`;
-    }
-};
+            const itemEl = document.createElement('div');
+            itemEl.style.display = 'flex';
+            itemEl.style.justifyContent = 'space-between';
+            itemEl.style.alignItems = 'center';
+            itemEl.style.padding = '12px';
+            itemEl.style.borderBottom = '1px solid rgba(0, 255, 102, 0.2)';
 
-window.checkZipPassword = function(windowId) {
-    const win = document.getElementById(windowId);
-    if (!win) return;
-    const input = win.querySelector('.zip-input-field');
-    if (!input) return;
-    
-    const pass = input.value.trim();
-    const isRu = (typeof currentLang !== 'undefined' ? currentLang === 'ru' : true);
-    
-    if (windowId === 'win-zip' && pass === '246') {
-        input.outerHTML = `<div style="color:#55ff55; margin-top:10px;">${isRu ? 'ДОСТУП РАЗРЕШЕН: СЕКРЕТНЫЙ ТЕКСТ 1' : 'ACCESS GRANTED: SECRET TEXT 1'}</div>`;
-    } else {
-        input.value = '';
-        input.placeholder = isRu ? 'НЕВЕРНЫЙ ПАРОЛЬ!' : 'WRONG PASSWORD!';
+            const infoEl = document.createElement('div');
+            infoEl.style.display = 'flex';
+            infoEl.style.gap = '15px';
+            infoEl.style.color = '#00ff66';
+
+            const iconEl = document.createElement('span');
+            iconEl.style.fontSize = '1.2rem';
+            iconEl.textContent = appData.icon;
+
+            const nameEl = document.createElement('span');
+            nameEl.style.alignSelf = 'center';
+            nameEl.textContent = lang === 'ru' ? appData.nameRu : appData.nameEn;
+
+            infoEl.appendChild(iconEl);
+            infoEl.appendChild(nameEl);
+            itemEl.appendChild(infoEl);
+
+            const actionBtn = document.createElement('button');
+            actionBtn.style.background = 'transparent';
+            actionBtn.style.padding = '6px 12px';
+            actionBtn.style.cursor = 'pointer';
+            actionBtn.style.fontFamily = 'Russo One, sans-serif';
+            actionBtn.style.fontSize = '0.8rem';
+
+            const isInstalled = window.AppConfig.state.installed.includes(appId);
+            const isInTrash = window.AppConfig.state.trashContents.includes(appId);
+
+            if (isInTrash) {
+                actionBtn.style.border = '1px solid #ffaa00';
+                actionBtn.style.color = '#ffaa00';
+                actionBtn.textContent = lang === 'ru' ? 'Вернуть' : 'Restore';
+                actionBtn.addEventListener('click', () => {
+                    const index = window.AppConfig.state.trashContents.indexOf(appId);
+                    if (index !== -1) {
+                        window.AppConfig.state.trashContents.splice(index, 1);
+                        window.AppConfig.save();
+                        renderStoreContents();
+                        if (window.renderDesktopIcons) window.renderDesktopIcons();
+                        if (window.renderExplorerContents) window.renderExplorerContents();
+                    }
+                });
+            } else if (isInstalled) {
+                actionBtn.style.border = '1px solid rgba(0, 255, 102, 0.4)';
+                actionBtn.style.color = 'rgba(0, 255, 102, 0.4)';
+                actionBtn.style.cursor = 'default';
+                actionBtn.textContent = lang === 'ru' ? 'Скачано' : 'Installed';
+            } else {
+                actionBtn.style.border = '1px solid #00ff66';
+                actionBtn.style.color = '#00ff66';
+                actionBtn.textContent = lang === 'ru' ? 'Скачать' : 'Get';
+                actionBtn.addEventListener('click', () => {
+                    window.AppConfig.state.installed.push(appId);
+                    window.AppConfig.save();
+                    renderStoreContents();
+                    if (window.renderDesktopIcons) window.renderDesktopIcons();
+                    if (window.renderExplorerContents) window.renderExplorerContents();
+                });
+            }
+
+            itemEl.appendChild(actionBtn);
+            storeContainer.appendChild(itemEl);
+        });
     }
-};
+})();
