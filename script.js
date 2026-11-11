@@ -18,7 +18,7 @@ const translations = {
         clear_data: "Стереть все данные",
         back: "Назад",
         chapters_title: "Главы",
-        ch1: "Глава 1",
+        ch1: 'Глава 1: "Динозаврик и Ссылка"',
         ch2: "Глава 2",
         ch3: "Глава 3",
         ch4: "Глава 4",
@@ -28,7 +28,8 @@ const translations = {
         exit: "Выход",
         credits: "Титры",
         news: "Новости",
-        credits_soon: "Титров пока нет ;)"
+        credits_soon: "Титров пока нет ;)",
+        news_text: "Разработка игры «The Message» идет полным ходом!"
     },
     en: {
         prompt: "CLICK ON SCREEN TO START",
@@ -44,7 +45,7 @@ const translations = {
         clear_data: "Wipe all data",
         back: "Back",
         chapters_title: "Chapters",
-        ch1: "Chapter 1",
+        ch1: 'Chapter 1: "Dino and Link"',
         ch2: "Chapter 2",
         ch3: "Chapter 3",
         ch4: "Chapter 4",
@@ -54,10 +55,17 @@ const translations = {
         exit: "Exit",
         credits: "Credits",
         news: "News",
-        credits_soon: "No credits yet ;)"
+        credits_soon: "No credits yet ;)",
+        news_text: "Development of «The Message» is in full swing!"
     }
 };
 
+const gfxLevels = ['low', 'medium', 'high'];
+const gfxLangKeys = { low: 'graphics_low', medium: 'graphics_med', high: 'graphics_high' };
+const langOrder = ['en', 'ru'];
+
+let currentGfxIndex = 2;
+let currentLangIndex = 1;
 let currentVideoIndex = 0;
 let isGameStarted = false;
 let settingsContext = 'menu';
@@ -67,6 +75,7 @@ const videoElement = document.getElementById('introVideo');
 const mainMenu = document.getElementById('mainMenu');
 const startPrompt = document.getElementById('startPrompt');
 const creditsOverlay = document.getElementById('creditsOverlay');
+const creditsText = document.getElementById('creditsText');
 
 const menuContent = document.getElementById('menuContent');
 const mainButtonsList = document.getElementById('mainButtonsList');
@@ -91,25 +100,19 @@ function initGameLaunch() {
 function playNextVideo() {
     if (currentVideoIndex < videos.length) {
         videoElement.pause();
-        videoElement.removeAttribute('src');
-        videoElement.load();
         videoElement.src = videos[currentVideoIndex];
-        videoElement.load();
         videoElement.muted = false;
+        
         const onCanPlay = () => {
-            if (currentVideoIndex === 0) return; 
-            let playPromise = videoElement.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(() => {
-                    videoElement.muted = true;
-                    videoElement.play().catch(() => {
-                        transitionToMenu();
-                    });
+            videoElement.play().catch(() => {
+                videoElement.muted = true;
+                videoElement.play().catch(() => {
+                    transitionToMenu();
                 });
-            }
-            videoElement.removeEventListener('canplaythrough', onCanPlay);
+            });
         };
-        videoElement.addEventListener('canplaythrough', onCanPlay);
+        
+        videoElement.oncanplaythrough = onCanPlay;
         currentVideoIndex++;
     } else {
         transitionToMenu();
@@ -139,8 +142,6 @@ function transitionToMenu() {
     currentVideoIndex = 999;
     videoElement.pause();
     videoElement.src = '';
-    videoElement.removeAttribute('src');
-    videoElement.load();
     videoContainer.style.transition = 'opacity 1.0s ease';
     videoContainer.style.opacity = '0';
     setTimeout(() => {
@@ -148,16 +149,37 @@ function transitionToMenu() {
         mainMenu.classList.remove('hidden');
         setTimeout(() => {
             mainMenu.classList.add('visible');
+            unlockFirstChapterButton();
+            syncSettingsUI();
+            if (window.YandexModule) {
+                window.YandexModule.gameReady();
+            }
         }, 50);
     }, 1000);
 }
 
+function unlockFirstChapterButton() {
+    const grid = panelStart.querySelector(".chapters-grid");
+    if (!grid) return;
+    const firstBtn = grid.querySelector("button");
+    if (firstBtn) {
+        firstBtn.classList.remove("locked");
+        firstBtn.classList.add("chapter-btn-active");
+        firstBtn.style.justifyContent = "center";
+        firstBtn.style.textAlign = "center";
+        const lockIcon = firstBtn.querySelector(".lock-icon");
+        const comingSoon = firstBtn.querySelector(".coming-soon");
+        if (lockIcon) lockIcon.remove();
+        if (comingSoon) comingSoon.remove();
+    }
+}
 function openPanel(clickedButton, targetPanel) {
     if (settingsContext === 'menu') {
         mainButtonsList.classList.add('has-active');
         if (clickedButton) clickedButton.classList.add('clicked');
         menuContent.classList.add('shifted');
     }
+    syncSettingsUI();
     targetPanel.classList.remove('hidden');
     setTimeout(() => targetPanel.classList.add('visible'), 50);
 }
@@ -174,107 +196,237 @@ function closeAllPanels() {
             if (!panel.classList.contains('visible')) {
                 panel.classList.add('hidden');
             }
-        }, 800);
+        }, 450);
+    });
+}
+
+function syncSettingsUI() {
+    const lang = langOrder[currentLangIndex] || 'ru';
+    const gfx = gfxLevels[currentGfxIndex] || 'high';
+    const gfxText = translations[lang][gfxLangKeys[gfx]];
+    const langText = lang === 'ru' ? 'Русский' : 'English';
+
+    ['menuGfxValue', 'desktopGfxValue'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = gfxText;
+    });
+
+    ['menuLangValue', 'desktopLangValue'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = langText;
+    });
+
+    ['menuGfxPrev', 'desktopGfxPrev'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.disabled = currentGfxIndex <= 0;
+    });
+
+    ['menuGfxNext', 'desktopGfxNext'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.disabled = currentGfxIndex >= gfxLevels.length - 1;
+    });
+
+    ['menuLangPrev', 'desktopLangPrev'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.disabled = currentLangIndex <= 0;
+    });
+
+    ['menuLangNext', 'desktopLangNext'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.disabled = currentLangIndex >= langOrder.length - 1;
     });
 }
 
 function switchLanguage(lang) {
+    const idx = langOrder.indexOf(lang);
+    if (idx !== -1) currentLangIndex = idx;
+    document.documentElement.lang = lang;
     document.querySelectorAll('[data-lang]').forEach(el => {
         const key = el.getAttribute('data-lang');
-        if (translations[lang][key]) {
+        if (translations[lang] && translations[lang][key]) {
             el.textContent = translations[lang][key];
         }
     });
+    syncSettingsUI();
 }
 
 function updateGraphics(level) {
+    const idx = gfxLevels.indexOf(level);
+    if (idx !== -1) currentGfxIndex = idx;
     document.body.classList.remove('gfx-low', 'gfx-medium', 'gfx-high');
-    if (level === 'low') document.body.classList.add('gfx-low');
-    if (level === 'medium') document.body.classList.add('gfx-medium');
-    if (level === 'high') document.body.classList.add('gfx-high');
+    document.body.classList.add('gfx-' + level);
+    syncSettingsUI();
+}
+
+function launchChapterOneProcess() {
+    if (window.AppConfig) {
+        window.AppConfig.setupChapterOneMode();
+    }
+    mainMenu.classList.remove('visible');
+    setTimeout(() => {
+        mainMenu.classList.add('hidden');
+        const startChapter = () => {
+            if (window.triggerLoading) {
+                window.triggerLoading(() => {
+                    const desktopEnv = document.getElementById('desktopEnv');
+                    desktopEnv.style.display = 'flex';
+                    desktopEnv.style.filter = 'none';
+                    desktopEnv.classList.remove('hidden');
+                    setTimeout(() => {
+                        desktopEnv.classList.add('visible');
+                        if (window.YandexModule) {
+                            window.YandexModule.startGameplay();
+                        }
+                        if (window.initChapterOne) {
+                            window.initChapterOne();
+                        }
+                    }, 50);
+                });
+            }
+        };
+        if (window.YandexModule) {
+            window.YandexModule.showAd(startChapter);
+        } else {
+            startChapter();
+        }
+    }, 1000);
+}
+
+function showOverlayMessage(textKey) {
+    const lang = document.documentElement.lang || 'ru';
+    if (creditsText && translations[lang] && translations[lang][textKey]) {
+        creditsText.textContent = translations[lang][textKey];
+    }
+    creditsOverlay.classList.remove('hidden');
+    setTimeout(() => creditsOverlay.classList.add('visible'), 50);
+    setTimeout(() => {
+        creditsOverlay.classList.remove('visible');
+        setTimeout(() => creditsOverlay.classList.add('hidden'), 500);
+    }, 3000);
 }
 
 document.addEventListener('click', function(e) {
     const target = e.target;
+    const btn = target.closest("button");
     
     if (target === startPrompt || startPrompt.contains(target)) {
         initGameLaunch();
         return;
     }
+
+    if (btn && (btn.id === 'menuGfxPrev' || btn.id === 'desktopGfxPrev')) {
+        if (currentGfxIndex > 0) updateGraphics(gfxLevels[currentGfxIndex - 1]);
+        return;
+    }
+
+    if (btn && (btn.id === 'menuGfxNext' || btn.id === 'desktopGfxNext')) {
+        if (currentGfxIndex < gfxLevels.length - 1) updateGraphics(gfxLevels[currentGfxIndex + 1]);
+        return;
+    }
+
+    if (btn && (btn.id === 'menuLangPrev' || btn.id === 'desktopLangPrev')) {
+        if (currentLangIndex > 0) switchLanguage(langOrder[currentLangIndex - 1]);
+        return;
+    }
+
+    if (btn && (btn.id === 'menuLangNext' || btn.id === 'desktopLangNext')) {
+        if (currentLangIndex < langOrder.length - 1) switchLanguage(langOrder[currentLangIndex + 1]);
+        return;
+    }
     
-    if (target.id === 'btnSettings') {
+    if (btn && btn.id === 'btnSettings') {
         settingsContext = 'menu';
-        openPanel(target, panelSettings);
+        openPanel(btn, panelSettings);
         return;
     }
     
-    if (target.id === 'btnStart') {
+    if (btn && btn.id === 'btnStart') {
         settingsContext = 'menu';
-        openPanel(target, panelStart);
+        openPanel(btn, panelStart);
         return;
     }
     
-    if (target.id === 'btnCredits') {
-        creditsOverlay.classList.remove('hidden');
-        setTimeout(() => creditsOverlay.classList.add('visible'), 50);
-        setTimeout(() => {
-            creditsOverlay.classList.remove('visible');
-            setTimeout(() => creditsOverlay.classList.add('hidden'), 500);
-        }, 3000);
+    if (btn && btn.classList.contains('chapter-btn-active')) {
+        closeAllPanels();
+        launchChapterOneProcess();
         return;
     }
     
-    if (target.id === 'btnFree') {
+    if (btn && btn.id === 'btnCredits') {
+        showOverlayMessage('credits_soon');
+        return;
+    }
+    
+    if (btn && btn.id === 'btnFree') {
+        if (window.AppConfig) {
+            window.AppConfig.resetToDesktopDefault();
+        }
         mainMenu.classList.remove('visible');
         setTimeout(() => {
             mainMenu.classList.add('hidden');
-            if (window.triggerLoading) {
-                window.triggerLoading(() => {
-                    const desktopEnv = document.getElementById('desktopEnv');
-                    desktopEnv.classList.remove('hidden');
-                    setTimeout(() => desktopEnv.classList.add('visible'), 50);
-                });
+            const startFreePlay = () => {
+                if (window.triggerLoading) {
+                    window.triggerLoading(() => {
+                        const desktopEnv = document.getElementById('desktopEnv');
+                        desktopEnv.style.display = 'flex';
+                        desktopEnv.style.filter = 'none';
+                        desktopEnv.classList.remove('hidden');
+                        setTimeout(() => {
+                            desktopEnv.classList.add('visible');
+                            if (window.renderDesktopIcons) {
+                                window.renderDesktopIcons();
+                            }
+                            if (window.YandexModule) {
+                                window.YandexModule.startGameplay();
+                            }
+                        }, 50);
+                    });
+                }
+            };
+            if (window.YandexModule) {
+                window.YandexModule.showAd(startFreePlay);
             } else {
-                const desktopEnv = document.getElementById('desktopEnv');
-                desktopEnv.classList.remove('hidden');
-                desktopEnv.classList.add('visible');
+                startFreePlay();
             }
         }, 1000);
         return;
     }
     
-    if (target.classList.contains('back-btn')) {
+    if (btn && btn.classList.contains('back-btn')) {
         closeAllPanels();
         return;
     }
     
-    if (target.classList.contains('select-btn') && !target.hasAttribute('data-gfx') && target.id !== 'desktopLangRu' && target.id !== 'desktopLangEn') {
-        const siblings = target.parentElement.querySelectorAll('.select-btn');
-        siblings.forEach(s => s.classList.remove('active'));
-        target.classList.add('active');
-        
-        if (target.id === 'langRu') { switchLanguage('ru'); return; }
-        if (target.id === 'langEn') { switchLanguage('en'); return; }
-        
-        const text = target.getAttribute('data-lang') || target.textContent.toLowerCase();
-        if (text.includes('low') || text.includes('низк')) updateGraphics('low');
-        if (text.includes('med') || text.includes('сред')) updateGraphics('medium');
-        if (text.includes('high') || text.includes('выс')) updateGraphics('high');
+    if (btn && btn.id === 'btnClearData') {
+        if (window.AppConfig) {
+            window.AppConfig.resetToDesktopDefault();
+        }
+        localStorage.removeItem('kpr_dino_highscore');
+        showOverlayMessage('clear_data');
         return;
     }
     
-    if (target.id === 'btnClearData') {
-        location.reload();
+    if (btn && btn.id === 'btnNews') {
+        showOverlayMessage('news_text');
         return;
     }
 });
 
 videoElement.addEventListener('ended', playNextVideo);
 
-window.addEventListener('keydown', (e) => {
-    if (!isGameStarted && (e.code === 'Space' || e.code === 'Enter')) {
-        initGameLaunch();
+window.addEventListener('keydown', function onAnyKeyStart(e) {
+    if (isGameStarted) {
+        window.removeEventListener('keydown', onAnyKeyStart);
+        return;
     }
-}, { once: true });
+    if (e.ctrlKey || e.key === 'Control' || e.code === 'F5' || e.key === 'F5' || e.altKey || e.metaKey || e.key === 'Shift') {
+        return;
+    }
+    e.preventDefault();
+    window.removeEventListener('keydown', onAnyKeyStart);
+    initGameLaunch();
+});
 
 window.switchLanguage = switchLanguage;
+window.updateGraphics = updateGraphics;
+window.syncSettingsUI = syncSettingsUI;
