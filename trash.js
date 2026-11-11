@@ -24,6 +24,9 @@
             if (window.AppConfig.state.positions[appId]) {
                 delete window.AppConfig.state.positions[appId];
             }
+            if (window.AppConfig.state.lastPositions && window.AppConfig.state.lastPositions[appId]) {
+                delete window.AppConfig.state.lastPositions[appId];
+            }
         });
 
         window.AppConfig.state.trashContents = [];
@@ -87,7 +90,11 @@
                 const index = window.AppConfig.state.trashContents.indexOf(appId);
                 if (index !== -1) {
                     window.AppConfig.state.trashContents.splice(index, 1);
-                    window.AppConfig.save();
+                    if (window.restoreAppPosition) {
+                        window.restoreAppPosition(appId);
+                    } else {
+                        window.AppConfig.save();
+                    }
                     renderTrashContents();
                     if (window.renderDesktopIcons) window.renderDesktopIcons();
                     if (window.renderExplorerContents) window.renderExplorerContents();
@@ -101,7 +108,16 @@
     }
 
     window.moveAppToTrash = function(appId) {
+        const appData = window.AppConfig.allApps[appId];
+        if (!appData || appData.type === 'system') return;
+
         if (!window.AppConfig.state.trashContents.includes(appId)) {
+            if (!window.AppConfig.state.lastPositions) {
+                window.AppConfig.state.lastPositions = {};
+            }
+            if (!window.AppConfig.state.lastPositions[appId] && window.AppConfig.state.positions[appId]) {
+                window.AppConfig.state.lastPositions[appId] = { ...window.AppConfig.state.positions[appId] };
+            }
             window.AppConfig.state.trashContents.push(appId);
             window.AppConfig.save();
             if (window.renderDesktopIcons) window.renderDesktopIcons();
