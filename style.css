@@ -1,8 +1,17 @@
+@font-face {
+    font-family: 'Russo One';
+    src: url('RussoOne-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
     user-select: none;
+    -webkit-user-select: none;
 }
 
 body, html {
@@ -49,13 +58,19 @@ video {
 
 .prompt-text {
     color: #00ff66;
-    font-size: 1.8rem;
+    font-size: 5vw;
     letter-spacing: 3px;
     text-transform: uppercase;
     text-shadow: 0 0 10px #00ff66;
     animation: pulse 1.5s infinite alternate;
     text-align: center;
     padding: 20px;
+}
+
+@media (min-width: 768px) {
+    .prompt-text {
+        font-size: 1.8rem;
+    }
 }
 
 @keyframes pulse {
@@ -155,7 +170,6 @@ video {
     80% { opacity: 0.32; }
     100% { opacity: 0.25; }
 }
-
 .menu-content {
     position: relative;
     z-index: 20;
@@ -163,11 +177,13 @@ video {
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
 }
 
 .menu-content.shifted {
-    transform: translateX(-25%);
+    opacity: 0;
+    pointer-events: none !important;
+    transform: scale(0.95);
 }
 
 .logo-wrapper {
@@ -239,27 +255,31 @@ video {
     box-shadow: 0 0 20px #00ff66, 0 0 40px #00ff66;
     pointer-events: auto !important;
 }
+
 .side-panel {
-    position: absolute;
-    right: -100%;
+    position: fixed;
+    left: 50%;
     top: 50%;
-    transform: translateY(-50%);
-    width: 500px;
-    background: rgba(5, 15, 5, 0.95);
+    transform: translate(-50%, -46%) scale(0.96);
+    width: 520px;
+    max-width: 92vw;
+    background: rgba(5, 15, 5, 0.96);
     border: 3px solid #00ff66;
-    padding: 40px;
-    box-shadow: 0 0 20px rgba(0, 255, 102, 0.2);
+    padding: 36px;
+    box-shadow: 0 0 25px rgba(0, 255, 102, 0.25);
     z-index: 30;
-    transition: right 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+    transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
     opacity: 0;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 26px;
     pointer-events: none !important;
 }
 
 .side-panel.visible {
-    right: 8%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(1);
     opacity: 1;
     pointer-events: auto !important;
 }
@@ -295,6 +315,57 @@ video {
     display: flex;
     gap: 10px;
     width: 100%;
+    align-items: center;
+}
+
+.arrow-selector {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 12px;
+}
+
+.arrow-btn {
+    background: transparent;
+    border: 2px solid #00ff66;
+    color: #00ff66;
+    width: 44px;
+    height: 42px;
+    font-family: 'Russo One', sans-serif;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.arrow-btn:hover:not(:disabled) {
+    background: #00ff66;
+    color: #000;
+    box-shadow: 0 0 12px #00ff66;
+}
+
+.arrow-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+    border-color: rgba(0, 255, 102, 0.35);
+    color: rgba(0, 255, 102, 0.35);
+    box-shadow: none !important;
+}
+
+.arrow-value {
+    flex: 1;
+    text-align: center;
+    color: #00ff66;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 9px 10px;
+    border: 1px solid rgba(0, 255, 102, 0.35);
+    background: rgba(0, 255, 102, 0.05);
 }
 
 .select-btn {
@@ -315,7 +386,6 @@ video {
     color: #000;
     box-shadow: 0 0 10px #00ff66;
 }
-
 .action-btn {
     background: transparent;
     border: 2px solid #ff3333;
@@ -353,6 +423,7 @@ video {
 .chapters-grid::-webkit-scrollbar {
     width: 6px;
 }
+
 .chapters-grid::-webkit-scrollbar-thumb {
     background: #00ff66;
 }
@@ -451,49 +522,10 @@ video {
     letter-spacing: 2px;
     text-shadow: 0 0 10px #00ff66;
     text-transform: uppercase;
+    text-align: center;
+    padding: 0 20px;
 }
 
-.side-social-bar {
-    position: absolute;
-    left: 30px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    z-index: 40;
-}
-
-.social-icon-btn {
-    width: 50px;
-    height: 50px;
-    border: 2px solid #00ff66;
-    background: transparent;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #00ff66;
-    transition: all 0.2s ease;
-    box-shadow: 0 0 8px rgba(0, 255, 102, 0.3);
-    cursor: pointer;
-    pointer-events: auto !important;
-}
-
-.social-icon-btn svg {
-    width: 24px;
-    height: 24px;
-    filter: drop-shadow(0 0 4px #00ff66);
-}
-
-.social-icon-btn:hover {
-    background: #00ff66;
-    color: #000;
-    box-shadow: 0 0 15px #00ff66, 0 0 30px #00ff66;
-}
-
-.social-icon-btn:hover svg {
-    filter: none;
-}
 .square-spinner {
     position: relative;
     width: 50px;
@@ -543,7 +575,7 @@ video {
     pointer-events: auto !important;
 }
 
-.desktop-environment.hidden, .desktop-window.hidden {
+.desktop-environment.hidden {
     display: none !important;
 }
 
@@ -599,7 +631,6 @@ video {
     min-width: 90px;
     text-align: right;
 }
-
 .desktop-window {
     position: absolute;
     top: 50%;
@@ -612,7 +643,21 @@ video {
     z-index: 50;
     display: flex;
     flex-direction: column;
+    opacity: 1;
+    visibility: visible;
+    filter: blur(0px);
+    margin-top: 0px;
     pointer-events: auto !important;
+    transition: opacity 0.26s ease, filter 0.26s ease, margin-top 0.26s cubic-bezier(0.2, 0.9, 0.3, 1.1), visibility 0.26s;
+}
+
+.desktop-window.hidden {
+    display: flex !important;
+    opacity: 0;
+    visibility: hidden;
+    filter: blur(3px);
+    margin-top: 14px;
+    pointer-events: none !important;
 }
 
 .window-header {
@@ -652,6 +697,47 @@ video {
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+.desktop-window .setting-row {
+    display: flex;
+    flex-direction: row !important;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.desktop-window .setting-options {
+    display: flex;
+    gap: 5px;
+    width: auto;
+}
+
+.desktop-window .arrow-selector {
+    width: 220px;
+    gap: 8px;
+}
+
+.desktop-window .arrow-btn {
+    width: 34px;
+    height: 32px;
+    font-size: 1rem;
+}
+
+.desktop-window .arrow-value {
+    font-size: 0.85rem;
+    padding: 6px 8px;
+}
+
+.desktop-window .select-btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    width: auto;
+}
+
+.desktop-window .action-btn {
+    padding: 8px;
+    font-size: 0.85rem;
 }
 
 .app-list-container {
@@ -714,11 +800,11 @@ video {
 body.gfx-low .scanlines, body.gfx-low .flicker {
     display: none !important;
 }
-body.gfx-low .menu-btn, body.gfx-low .side-panel, body.gfx-low .prompt-text, body.gfx-low .panel-title, body.gfx-low .square-spinner, body.gfx-low .loading-text, body.gfx-low .taskbar-clock, body.gfx-low .taskbar-btn, body.gfx-low .desktop-window, body.gfx-low .credits-text, body.gfx-low .social-icon-btn, body.gfx-low .icon-visual {
+body.gfx-low .menu-btn, body.gfx-low .side-panel, body.gfx-low .prompt-text, body.gfx-low .panel-title, body.gfx-low .square-spinner, body.gfx-low .loading-text, body.gfx-low .taskbar-clock, body.gfx-low .taskbar-btn, body.gfx-low .desktop-window, body.gfx-low .credits-text, body.gfx-low .icon-visual {
     text-shadow: none !important;
     box-shadow: none !important;
 }
-body.gfx-low .menu-btn:hover, body.gfx-low .taskbar-btn:hover, body.gfx-low .social-icon-btn:hover, body.gfx-low .desktop-icon:hover {
+body.gfx-low .menu-btn:hover, body.gfx-low .taskbar-btn:hover, body.gfx-low .desktop-icon:hover {
     box-shadow: none !important;
 }
 body.gfx-low .menu-logo {
@@ -745,4 +831,50 @@ body.gfx-high .flicker {
 }
 body.gfx-high .menu-logo {
     filter: brightness(1.2) contrast(1.1) sepia(1) hue-rotate(85deg) saturate(5);
+}
+
+@media (max-width: 1023px) {
+    .menu-logo {
+        max-width: 260px;
+    }
+    .menu-btn {
+        width: 200px;
+        padding: 8px 20px;
+        font-size: 1rem;
+    }
+    .side-panel {
+        width: 92vw;
+        max-width: 480px;
+        padding: 24px;
+        gap: 18px;
+    }
+    .desktop-window {
+        width: 90%;
+        max-width: 450px;
+    }
+}
+
+@media (max-width: 1023px) and (orientation: portrait) {
+    body::before {
+        content: "ПОЖАЛУЙСТА, ПЕРЕВЕРНИТЕ УСТРОЙСТВО ГОРИЗОНТАЛЬНО";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        color: #00ff66;
+        z-index: 99999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 30px;
+        font-family: 'Russo One', sans-serif;
+        font-size: 1.2rem;
+        letter-spacing: 1px;
+    }
+    html[lang="en"] body::before {
+        content: "PLEASE ROTATE YOUR DEVICE TO LANDSCAPE";
+    }
 }
