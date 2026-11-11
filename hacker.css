@@ -1,0 +1,217 @@
+#systemCrashOverlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: 'Russo One', sans-serif;
+    animation: crash-bg-flash 0.14s infinite alternate;
+}
+
+@keyframes crash-bg-flash {
+    0% { background: #050000; }
+    50% { background: #1a0000; }
+    100% { background: #000502; }
+}
+
+.crash-particles-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.crash-particle {
+    position: absolute;
+    animation: particle-blink 0.12s infinite alternate;
+}
+
+@keyframes particle-blink {
+    0% { opacity: 0.15; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1.25); }
+}
+
+.crash-error-text {
+    position: relative;
+    z-index: 5;
+    font-size: 16vw;
+    font-weight: bold;
+    letter-spacing: 8px;
+    color: #ff3333;
+    text-transform: uppercase;
+    text-shadow: -6px 0 #00ff66, 6px 0 #ffffff, 0 0 35px #ff3333;
+    animation: error-shake 0.08s infinite alternate;
+    user-select: none;
+}
+
+@keyframes error-shake {
+    0% { transform: translate(-8px, 4px) skewX(-6deg); opacity: 1; }
+    50% { transform: translate(8px, -5px) skewX(6deg); opacity: 0.4; }
+    100% { transform: translate(-4px, -3px) skewX(-3deg); opacity: 1; }
+}
+
+#hackerOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+    z-index: 10000;
+    display: none;
+    opacity: 0;
+    transition: opacity 2.2s ease-in-out;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Russo One', sans-serif;
+    color: #ff3333;
+    padding: 20px;
+    overflow: hidden;
+}
+
+#hackerOverlay.visible {
+    opacity: 1;
+}
+
+.hacker-bg-effects {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    background: radial-gradient(circle, rgba(60, 0, 0, 0.7) 0%, rgba(0, 0, 0, 1) 85%);
+}
+
+.hacker-noise {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35) 1px, transparent 1px, transparent 2px);
+    opacity: 0.75;
+    animation: h-noise 0.1s infinite;
+}
+
+@keyframes h-noise {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(2px); }
+}
+
+.hacker-portrait-wrapper {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.hacker-frame {
+    width: 220px;
+    height: 290px;
+    border: 3px solid #ff3333;
+    background: rgba(10, 0, 0, 0.85);
+    box-shadow: 0 0 25px rgba(255, 51, 51, 0.45), inset 0 0 20px rgba(255, 51, 51, 0.25);
+    position: relative;
+    overflow: hidden;
+    animation: h-glitch 3s infinite alternate;
+}
+
+.hacker-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: drop-shadow(0 0 6px #ff3333);
+}
+
+.hacker-eye-right {
+    transform-origin: 120px 75px;
+    animation: h-eye-blink 3.5s infinite steps(1);
+}
+
+@keyframes h-eye-blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+}
+
+.hacker-caption {
+    margin-top: 8px;
+    font-size: 1.35rem;
+    letter-spacing: 2px;
+    color: #ff3333;
+    text-shadow: 0 0 10px #ff3333;
+}
+
+@keyframes h-glitch {
+    0% { transform: translate(0); }
+    92% { transform: translate(0); }
+    94% { transform: translate(-3px, 1px); }
+    96% { transform: translate(3px, -2px); }
+    98% { transform: translate(-1px, 2px); }
+    100% { transform: translate(0); }
+}
+
+.hacker-text-container {
+    z-index: 2;
+    text-align: center;
+    max-width: 650px;
+    margin-bottom: 22px;
+    padding: 0 15px;
+}
+
+.hacker-msg {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px rgba(255, 51, 51, 0.8);
+    color: #ff3333 !important;
+}
+
+.hacker-options-zone {
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 420px;
+    padding: 0 15px;
+}
+
+.hacker-btn {
+    background: rgba(15, 0, 0, 0.85) !important;
+    border: 2px solid #ff3333 !important;
+    color: #ff3333 !important;
+    padding: 11px 18px !important;
+    font-family: 'Russo One', sans-serif !important;
+    font-size: 0.9rem !important;
+    text-transform: uppercase !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    text-align: left;
+}
+
+.hacker-btn:hover {
+    background: #ff3333 !important;
+    color: #000 !important;
+    box-shadow: 0 0 25px #ff3333 !important;
+}
+
+@media (max-height: 620px) {
+    .hacker-frame {
+        width: 150px;
+        height: 195px;
+    }
+    .hacker-caption {
+        font-size: 1.1rem;
+    }
+    .hacker-msg {
+        font-size: 0.95rem;
+    }
+}
